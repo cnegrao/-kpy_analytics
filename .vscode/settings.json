@@ -5,8 +5,8 @@
             "previewLimit": 50,
             "driver": "DuckDB",
             "name": "cn_kpi_analytics_db",
-            "database": "${workspaceFolder:#kpy_analytics}/APP/data/kpi_analytics_db.duckdb",
-            "group": "con"
+            "group": "conn",
+            "database": "${workspaceFolder:#kpy_analytics}/APP/data/kpi_analytics_db.duckdb"
         }
     ]
 }
