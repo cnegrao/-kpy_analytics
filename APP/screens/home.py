@@ -1,6 +1,7 @@
 import streamlit as st
 import data_entry
 import reports
+import analytics  # Importe a nova página analytics.py
 
 def main():
     # Configuração da página
@@ -13,7 +14,7 @@ def main():
 
     # Barra lateral para navegação entre as páginas
     st.sidebar.title("Menu")
-    page = st.sidebar.radio("Escolha uma opção:", ["Tela Principal", "Entrada de Dados", "Consulta Analítica"])
+    page = st.sidebar.radio("Escolha uma opção:", ["Tela Principal", "Entrada de Dados", "Consulta Analítica", "Análise Acumulada"])  # Adicione a nova página à barra lateral
 
     # Variável de controle para mostrar ou não o título
     show_title = True
@@ -24,6 +25,9 @@ def main():
         show_title = False  # Não mostrar título nas outras páginas
     elif page == "Consulta Analítica":
         reports.main()
+        show_title = False  # Não mostrar título nas outras páginas
+    elif page == "Análise Acumulada":  # Adicione a nova condição para a nova página
+        analytics.main()  # Chame a função main() da página analytics.py
         show_title = False  # Não mostrar título nas outras páginas
 
     # Se estamos na página principal e a variável de controle é verdadeira, mostramos o título
