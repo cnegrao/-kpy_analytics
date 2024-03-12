@@ -54,9 +54,14 @@ def save_data(year, month, selected_indicator_id, goal, value):
                 INSERT INTO tb_monthly_data (kpi_id, year, month, goal, value)
                 VALUES (?, ?, ?, ?, ?)
             """, (selected_indicator_id, year, month, goal, value))
+        except duckdb.OperationalError as e:
+            if "unique constraint" in str(e).lower():
+                st.error("Erro: Os dados já existem para o indicador, ano e mês fornecidos.")
+            else:
+                st.error(f"Erro ao enviar os dados: {e}")
         except Exception as e:
-            # Lidar com erros específicos ou propagá-los
-            raise e
+            # Lidar com outros erros específicos ou propagá-los
+            st.error(f"Erro ao enviar os dados: {e}")
 
 if __name__ == "__main__":
     main()
