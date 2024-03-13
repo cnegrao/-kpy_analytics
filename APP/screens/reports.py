@@ -1,86 +1,107 @@
 import streamlit as st
-import duckdb
 import pandas as pd
+import duckdb
+import locale
 
-def main():
-    st.title("Relatórios")
-    
-    # Carregar os indicadores para preencher o dropdown
-    indicators = load_indicators()
-    selected_indicator_name = st.selectbox('Selecione o indicador:', [indicator[1] for indicator in indicators])
-
-    # Carregar os anos disponíveis para o indicador selecionado
-    years = load_years(selected_indicator_name)
-    selected_year = st.selectbox('Selecione o ano:', years)
-
-    # Carregar os dados mensais para o indicador e o ano selecionados
-    monthly_data = load_monthly_data(selected_indicator_name, selected_year)
-
-    # Converter os dados para DataFrame do Pandas
-    df = pd.DataFrame(monthly_data, columns=['Meta', 'Real', 'Ano', 'Mes'])
-
-    # Concatenar ano e mês para formar a coluna AnoMes
-    df['AnoMes'] = df['Ano'].astype(str) + df['Mes'].astype(str).str.zfill(2)
-
-    # Calcular o desvio e o farol para cada mês
-    df['Desvio'] = df.apply(calculate_desvio, axis=1)
-    df['Farol'] = df.apply(calculate_farol, axis=1)
-
-    # Exibir a tabela na interface
-    st.write("Dados Mensais:")
-    st.table(df[['AnoMes', 'Real', 'Meta', 'Desvio', 'Farol']])
+# Configuração do locale para português do Brasil
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 def load_indicators():
-    # Conectar ao banco de dados para carregar os indicadores
-    conn = duckdb.connect("app/data/kpi_analytics_db.duckdb")
-    indicators = conn.execute("SELECT id, kpi_name FROM tb_kpi").fetchall()
-    conn.close()
+    with duckdb.connect("app/data/kpi_analytics_db.duckdb") as conn:
+        indicators = pd.read_sql_query("SELECT id, kpi_name FROM tb_kpi", conn)
     return indicators
 
-def load_years(selected_indicator_name):
-    # Conectar ao banco de dados para carregar os anos disponíveis para o indicador selecionado
-    conn = duckdb.connect("app/data/kpi_analytics_db.duckdb")
-    years = conn.execute("""
-        SELECT DISTINCT "year"
-        FROM tb_monthly_data
-        WHERE kpi_id = (SELECT id FROM tb_kpi WHERE kpi_name = ?)
-    """, (selected_indicator_name,)).fetchall()
-    conn.close()
-    return [year[0] for year in years]
+def load_years(indicator_id):
+    query = """
+    SELECT DISTINCT year
+    FROM tb_monthly_data
+    WHERE kpi_id = ?
+    ORDER BY year
+    """
+    indicator_id = int(indicator_id)
+    with duckdb.connect("app/data/kpi_analytics_db.duckdb") as conn:
+        years = pd.read_sql_query(query, conn, params=(indicator_id,))
+    return years['year'].tolist()
 
-def load_monthly_data(selected_indicator_name, selected_year):
-    # Conectar ao banco de dados para carregar os dados mensais para o indicador e o ano selecionados
-    conn = duckdb.connect("app/data/kpi_analytics_db.duckdb")
-    monthly_data = conn.execute("""
-        SELECT goal as Meta, value as Real, "year" as Ano, month as Mes
-        FROM tb_monthly_data
-        WHERE kpi_id = (SELECT id FROM tb_kpi WHERE kpi_name = ?)
-        AND "year" = ?
-    """, (selected_indicator_name, selected_year)).fetchall()
-    conn.close()
+def load_monthly_data(indicator_id, year):
+    query = """
+    SELECT month, goal as Meta, value as Real
+    FROM tb_monthly_data
+    WHERE kpi_id = ? AND year = ?
+    ORDER BY month
+    """
+    indicator_id = int(indicator_id)
+    year = int(year)
+    with duckdb.connect("app/data/kpi_analytics_db.duckdb") as conn:
+        monthly_data = pd.read_sql_query(query, conn, params=(indicator_id, year))
+    monthly_data['month'] = monthly_data['month'].apply(lambda x: pd.to_datetime(f'{x}-01', format='%m-%d').strftime('%b'))
     return monthly_data
 
-def calculate_desvio(row):
-    # Calcular o desvio em percentual
-    real = row['Real']
-    meta = row['Meta']
-    if meta != 0:
-        return ((real - meta) / meta) * 100
-    else:
-        return 0
+def calculate_desvio_and_farol(df):
+    df['Desvio'] = ((df['Real'] - df['Meta']) / df['Meta']) * 100
+    df['Farol Ícone'] = df.apply(lambda row: '🔵' if row['Real'] > row['Meta'] * 1.01 else
+                                          '🟢' if row['Real'] >= row['Meta'] else
+                                          '🟠' if row['Real'] >= row['Meta'] * 0.7 else
+                                          '🔴', axis=1)
+    # Renomeia as colunas para exibição
+    df.rename(columns={'month': 'Mês', 'Farol Ícone': 'Farol'}, inplace=True)
+    return df
 
-def calculate_farol(row):
-    # Calcular o farol com base no valor real e na meta
-    real = row['Real']
-    meta = row['Meta']
-    if real > meta * 1.01:
-        return 4
-    elif real >= meta:
-        return 3
-    elif real >= meta * 0.7:
-        return 2
-    else:
-        return 1
+def prepare_and_display_data(monthly_data):
+     # Assegura que não estamos modificando o DataFrame original
+    data = monthly_data.copy()
+
+    # Renomeia as colunas conforme necessário
+    data.rename(columns={'month': 'Mês', 'Farol Ícone': 'Farol'}, inplace=True)
+
+    # Convertendo o DataFrame para uma lista de dicionários
+    data_dicts = data.to_dict(orient='records')
+
+    # Inicia a construção da tabela
+    table_header = """| Mês | Real | Meta | Desvio | Farol |
+| --- | --- | --- | --- | --- |"""
+    table_rows = [table_header]
+
+    for record in data_dicts:
+        row = "| {Mês} | {Real} | {Meta} | {Desvio} | {Farol} |".format(**record)
+        table_rows.append(row)
+
+    # Combina todas as linhas em uma única string markdown e exibe
+    table_markdown = "\n".join(table_rows)
+    st.markdown(table_markdown, unsafe_allow_html=True)
+
+
+    # Converter o DataFrame em uma lista de dicionários
+    data_to_display = monthly_data.to_dict(orient='records')
+
+    
+   
+def main():
+    st.title("Relatórios de Desempenho")
+
+    indicators_df = load_indicators()
+    selected_indicator_name = st.selectbox('Selecione o indicador:', indicators_df['kpi_name'])
+
+    if not indicators_df[indicators_df['kpi_name'] == selected_indicator_name].empty:
+        selected_indicator_id = indicators_df[indicators_df['kpi_name'] == selected_indicator_name]['id'].iloc[0]
+
+        years = load_years(selected_indicator_id)
+        if years:
+            selected_year = st.selectbox('Selecione o ano:', years)
+
+            if selected_year:
+                monthly_data = load_monthly_data(selected_indicator_id, selected_year)
+                monthly_data = calculate_desvio_and_farol(monthly_data)
+                st.write("Dados Mensais:")
+                prepare_and_display_data(monthly_data)
+                
+    st.write("Legenda do Farol:")
+    st.markdown("""
+    - 🔵 Azul: Desempenho acima da meta (> 101% da meta)
+    - 🟢 Verde: Desempenho na meta (≥ 100% da meta e ≤ 101% da meta)
+    - 🟠 Laranja: Desempenho próximo da meta (≥ 70% da meta e < 100% da meta)
+    - 🔴 Vermelho: Desempenho abaixo da meta (< 70% da meta)
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
