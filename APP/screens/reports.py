@@ -34,11 +34,27 @@ def load_monthly_data(indicator_id, year):
     return monthly_data
 
 def calculate_indicators(df):
-    """Calcula desvios e aplica o farol para dados mensais e acumulados, com tratamento para zeros."""
-    df['Desvio'] = df.apply(lambda row: (row['Real'] - row['Meta']) / row['Meta'] * 100 if row['Meta'] > 0 else None, axis=1)
+    """Calcula desvios e aplica o farol para dados mensais e acumulados, tratando corretamente os casos sem dados."""
+    # Calcula o desvio somente se a meta for maior que zero; caso contrário, define como NaN
+    df['Desvio (%)'] = df.apply(lambda row: (row['Real'] - row['Meta']) / row['Meta'] * 100 if row['Meta'] > 0 else pd.NA, axis=1)
     df['Real Acumulado'] = df['Real'].cumsum()
     df['Meta Acumulada'] = df['Meta'].cumsum()
-    df['Desvio Acumulado'] = df.apply(lambda row: (row['Real Acumulado'] - row['Meta Acumulada']) / row['Meta Acumulada'] * 100 if row['Meta Acumulada'] > 0 else None, axis=1)
+    df['Desvio Acumulado (%)'] = df.apply(lambda row: (row['Real Acumulado'] - row['Meta Acumulada']) / row['Meta Acumulada'] * 100 if row['Meta Acumulada'] > 0 else pd.NA, axis=1)
+
+    # Define os faróis baseados nas regras de desvio, incluindo o tratamento para quando não há dados (NaN)
+    def farol(value):
+        if pd.isna(value): return ''  # Não exibe farol quando não há dados
+        elif value > 110: return '🔵'
+        elif value >= 100: return '🟢'
+        elif value >= 85: return '🟠'
+        else: return '🔴'
+
+    df['Farol'] = df['Desvio (%)'].apply(farol)
+    df['Farol Acumulado'] = df['Desvio Acumulado (%)'].apply(farol)
+
+    # Aplique a formatação como percentual diretamente antes de exibir os dados, não aqui
+    df.rename(columns={'month': 'Mês'}, inplace=True)
+    return df
     
     # Define os faróis baseados nas regras de desvio, tratando especificamente zeros em 'Real'
     def farol(value, real):
@@ -56,9 +72,15 @@ def calculate_indicators(df):
 
 
 def prepare_and_display_data(data):
-    """Prepara e exibe os dados calculados na interface do Streamlit."""
     st.write("Dados Mensais e Acumulados")
-    st.dataframe(data[['Mês', 'Real', 'Meta', 'Desvio', 'Farol', 'Real Acumulado', 'Meta Acumulada', 'Desvio Acumulado', 'Farol Acumulado']], width=700, height=600)
+
+    # Aplica a formatação percentual aqui, convertendo NaN para string vazia e formatando números
+    data['Desvio (%)'] = data['Desvio (%)'].apply(lambda x: '' if pd.isna(x) else "{:.2f}%".format(x))
+    data['Desvio Acumulado (%)'] = data['Desvio Acumulado (%)'].apply(lambda x: '' if pd.isna(x) else "{:.2f}%".format(x))
+
+    # Convertendo o DataFrame para Markdown
+    result_md = data.to_markdown(index=False)
+    st.markdown(result_md, unsafe_allow_html=True)
 
 def main():
     st.title("Relatórios de Desempenho")
@@ -73,6 +95,18 @@ def main():
         monthly_data = load_monthly_data(selected_indicator_id, selected_year)
         indicators_data = calculate_indicators(monthly_data)
         prepare_and_display_data(indicators_data)
-
+        st.write("Legenda do Farol:")
+    
+    # Legenda do Farol ajustada
+    st.write("Legenda do Farol:")
+    st.markdown("""
+    <div style="margin-top: 20px;">
+        <div><span style="color: blue;">🔵</span> <b>Azul:</b> Desempenho acima da meta (> 110% da meta)</div>
+        <div><span style="color: green;">🟢</span> <b>Verde:</b> Desempenho na meta (≥ 100% da meta e ≤ 110% da meta)</div>
+        <div><span style="color: orange;">🟠</span> <b>Laranja:</b> Desempenho próximo da meta (≥ 85% e < 100% da meta)</div>
+        <div><span style="color: red;">🔴</span> <b>Vermelho:</b> Desempenho abaixo da meta (≤ 84% da meta)</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
 if __name__ == "__main__":
     main()
