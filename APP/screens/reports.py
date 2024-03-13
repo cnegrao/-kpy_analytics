@@ -48,33 +48,40 @@ def calculate_desvio_and_farol(df):
     return df
 
 def prepare_and_display_data(monthly_data):
-     # Assegura que não estamos modificando o DataFrame original
+    """
+    Prepara e exibe o DataFrame no Streamlit usando Markdown para uma exibição estilizada,
+    tratando corretamente valores NaN na coluna Desvio e evitando mostrar o ícone de Farol quando Desvio for NaN.
+    Valores NaN são mostrados como células vazias na tabela.
+    """
+
+    # Assegura que não estamos modificando o DataFrame original
     data = monthly_data.copy()
 
     # Renomeia as colunas conforme necessário
     data.rename(columns={'month': 'Mês', 'Farol Ícone': 'Farol'}, inplace=True)
 
+    # Substitui NaN por um valor específico ('N/A') na coluna Desvio e ajusta o ícone de Farol
+    data['Desvio'] = data['Desvio'].fillna('N/A')
+    data['Farol'] = data.apply(lambda row: '' if row['Desvio'] == 'N/A' else row['Farol'], axis=1)
+
     # Convertendo o DataFrame para uma lista de dicionários
     data_dicts = data.to_dict(orient='records')
 
-    # Inicia a construção da tabela
+    # Inicia a construção da tabela usando Markdown
     table_header = """| Mês | Real | Meta | Desvio | Farol |
 | --- | --- | --- | --- | --- |"""
     table_rows = [table_header]
 
     for record in data_dicts:
-        row = "| {Mês} | {Real} | {Meta} | {Desvio} | {Farol} |".format(**record)
+        # Substitui 'N/A' por uma string vazia na coluna Desvio para a visualização
+        desvio = '' if record['Desvio'] == 'N/A' else record['Desvio']
+        row = "| {Mês} | {Real} | {Meta} | {desvio} | {Farol} |".format(**record, desvio=desvio)
         table_rows.append(row)
 
     # Combina todas as linhas em uma única string markdown e exibe
     table_markdown = "\n".join(table_rows)
     st.markdown(table_markdown, unsafe_allow_html=True)
 
-
-    # Converter o DataFrame em uma lista de dicionários
-    data_to_display = monthly_data.to_dict(orient='records')
-
-    
    
 def main():
     st.title("Relatórios de Desempenho")
