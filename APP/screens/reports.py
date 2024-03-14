@@ -2,9 +2,33 @@ import streamlit as st
 import pandas as pd
 import duckdb
 import locale
+import plotly.graph_objects as go
+
 
 # Configuração do locale para português do Brasil
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
+def create_real_vs_meta_chart(df):
+    fig = go.Figure()
+    
+    # Adiciona o Real como barras
+    fig.add_trace(go.Bar(x=df['Mês'], y=df['Real'], name='Real', marker_color='red'))
+    
+    # Adiciona a Meta como linha
+    fig.add_trace(go.Scatter(x=df['Mês'], y=df['Meta'], mode='lines+markers', name='Meta', line=dict(color='blue', width=2)))
+    
+    fig.update_layout(title_text='Real vs Meta', xaxis_title='Mês', yaxis_title='Valor', barmode='group')
+    return fig
+
+
+def create_cumulative_chart(df):
+    fig = go.Figure()
+    # Usando go.Scatter para criar gráfico de linhas
+    fig.add_trace(go.Scatter(x=df['Mês'], y=df['Meta Acumulada'], mode='lines+markers', name='Meta Acumulada', line=dict(color='navy')))
+    fig.add_trace(go.Scatter(x=df['Mês'], y=df['Real Acumulado'], mode='lines+markers', name='Real Acumulado', line=dict(color='crimson')))
+    fig.update_layout(title_text='Real Acumulado vs Meta Acumulada', xaxis_title='Mês', yaxis_title='Valor Acumulado')
+    return fig
+
 
 def load_indicators():
     """Carrega a lista de indicadores disponíveis no banco de dados."""
@@ -81,6 +105,14 @@ def prepare_and_display_data(data):
     # Convertendo o DataFrame para Markdown
     result_md = data.to_markdown(index=False)
     st.markdown(result_md, unsafe_allow_html=True)
+    
+       # Exibe os gráficos
+    real_vs_meta_fig = create_real_vs_meta_chart(data)
+    st.plotly_chart(real_vs_meta_fig, use_container_width=True)
+    
+    cumulative_fig = create_cumulative_chart(data)
+    st.plotly_chart(cumulative_fig, use_container_width=True)
+
 
 def main():
     st.title("Relatórios de Desempenho")

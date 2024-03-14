@@ -2,15 +2,15 @@ import streamlit as st
 import duckdb
 
 def main():
-    st.title("📊 Tela de Entrada de Dados")
+    st.title("Tela de Entrada de Dados 📊")
 
     with st.container():
-        st.subheader("🔍 Selecione o Indicador")
+        st.subheader("Selecione o Indicador 🔍")
         indicators = load_indicators()
-        selected_indicator_id, selected_indicator_name = st.selectbox('', indicators, format_func=lambda x: x[1])
+        selected_indicator_id, selected_indicator_name = st.selectbox('Escolha um indicador:', indicators, format_func=lambda x: x[1])
 
     with st.container():
-        st.subheader("📅 Informe o Período")
+        st.subheader("Informe o Período 📅")
         col1, col2 = st.columns(2)
         with col1:
             year = st.number_input("Ano", min_value=2024, max_value=2025, value=2024, help="Selecione o ano desejado.")
@@ -18,7 +18,7 @@ def main():
             month = st.selectbox("Mês", range(1, 13), index=0, help="Selecione o mês desejado.")
 
     with st.container():
-        st.subheader("💹 Defina Valor e Meta")
+        st.subheader("Defina Valor e Meta 💹")
         col3, col4 = st.columns(2)
         with col3:
             value = st.number_input("Valor", min_value=0.01, value=0.01, step=0.01, help="Insira o valor alcançado.")
@@ -28,6 +28,7 @@ def main():
     submit_button = st.button("Enviar Dados 🚀")
     if submit_button:
         save_data(year, month, selected_indicator_id, goal, value)
+        # Considere mover o código de sucesso para dentro da função save_data
 
 def load_indicators():
     with duckdb.connect("app/data/kpi_analytics_db.duckdb") as conn:
@@ -41,14 +42,12 @@ def save_data(year, month, selected_indicator_id, goal, value):
                          (selected_indicator_id, year, month, goal, value))
             st.success("Dados enviados com sucesso! ✅")
     except duckdb.OperationalError as e:
-        error_message = str(e)
-        if "violates unique constraint" in error_message:
-            # Extrai as informações chave da mensagem de erro para uma resposta mais detalhada.
-            st.error("Erro ao enviar os dados: Já existe um registro para o indicador com ID {}, no ano {} e mês {}. Por favor, verifique os dados e tente novamente.".format(selected_indicator_id, year, month))
+        if "unique constraint" in str(e).lower():
+            st.error(f"Erro: Já existe registro para o indicador selecionado no período especificado. Por favor, verifique e tente novamente.")
         else:
-            st.error(f"Erro técnico ao enviar os dados: {error_message}")
+            st.error("Erro técnico ao enviar os dados. Por favor, tente novamente ou contate o suporte.")
     except Exception as e:
-        st.error(f"Erro desconhecido ao enviar os dados: {str(e)}")
+        st.error(f"Erro ao enviar os dados: {e}")
 
 if __name__ == "__main__":
     main()
