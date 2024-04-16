@@ -88,8 +88,6 @@ def display_data_table(df):
     # Exibição da tabela no Streamlit
     st.plotly_chart(fig, use_container_width=True)
 
-
-
 def main():
     st.title("Relatórios de Desempenho")
 
