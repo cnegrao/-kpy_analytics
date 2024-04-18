@@ -1,7 +1,7 @@
+import locale
 import streamlit as st
 import pandas as pd
 import duckdb
-import locale
 
 # Configuração do locale para português do Brasil
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
