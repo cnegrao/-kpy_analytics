@@ -1,6 +1,8 @@
 import streamlit as st
 import data_entry
 import reports
+import os
+import sys
 
 def main():
     # Configuração da página
@@ -15,6 +17,8 @@ def main():
     st.sidebar.title("Menu")
     page = st.sidebar.radio("Escolha uma opção:", ["Tela Principal", "Entrada de Dados", "Consulta Analítica", "Análise Acumulada"])
 
+
+ 
     # Variável de controle para mostrar ou não o título
     show_title = True
 
@@ -36,6 +40,8 @@ def show_main_page():
         Esta é a tela principal da aplicação. 
         Use o menu à esquerda para navegar entre as diferentes funcionalidades disponíveis.
     """)
-
+    print("Diretório atual:", os.getcwd())
+    print("Caminho de busca do Python:", sys.path)
+    
 if __name__ == "__main__":
     main()

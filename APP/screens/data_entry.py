@@ -1,9 +1,14 @@
 import streamlit as st
 import duckdb
+import os
+import sys
 
 def main():
     st.title("Tela de Entrada de Dados 📊")
 
+    print("Diretório atual:", os.getcwd())
+    print("Caminho de busca do Python:", sys.path)
+    
     with st.container():
         st.subheader("Selecione o Indicador 🔍")
         indicators = load_indicators()
