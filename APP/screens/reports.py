@@ -1,7 +1,7 @@
+import locale
 import streamlit as st
 import pandas as pd
 import duckdb
-import locale
 import plotly.graph_objects as go
 
 # Configuração do locale para português do Brasil
