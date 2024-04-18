@@ -1,7 +1,6 @@
 import streamlit as st
 import data_entry
 import reports
-import analytics  # Certifique-se de que você tenha este módulo implementado para análises acumuladas.
 
 def main():
     # Configuração da página
@@ -26,11 +25,7 @@ def main():
     elif page == "Consulta Analítica":
         reports.main()
         show_title = False
-    elif page == "Análise Acumulada":
-        analytics.main()  # Chame a função main() da página analytics.py, se implementada.
-        show_title = False
-
-    # Se estamos na página principal e a variável de controle é verdadeira, mostramos o título
+        # Se estamos na página principal e a variável de controle é verdadeira, mostramos o título
     if page == "Tela Principal" and show_title:
         show_main_page()
 
