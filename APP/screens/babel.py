@@ -98,3 +98,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+#Mudanças Feitas
+#Substituição de locale.setlocale(): Removido o uso de locale.setlocale para evitar erros em sistemas que não suportam a localidade pt_BR.UTF-8.
+#Uso de format_decimal e format_date do Babel: Utilizado para formatar números e datas diretamente no estilo brasileiro sem necessidade de alterar o locale do sistema.
