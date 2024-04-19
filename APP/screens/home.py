@@ -1,5 +1,7 @@
-import data_entry
-import reports
+import sys
+if 'D:\\#kpy_analytics' not in sys.path:
+    sys.path.insert(0, 'D:\\#kpy_analytics')
+from APP.screens import data_entry, reports
 import streamlit as st
 import os
 import sys
