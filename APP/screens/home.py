@@ -1,6 +1,13 @@
 import sys
-if 'D:\\#kpy_analytics' not in sys.path:
-    sys.path.insert(0, 'D:\\#kpy_analytics')
+import os
+
+# Determinar o caminho base com base no sistema operacional
+base_path = 'D:\\#kpy_analytics' if os.name == 'nt' else '/mount/src/-kpy_analytics'
+
+# Adicionar o caminho base ao sys.path se ainda não estiver incluído
+if base_path not in sys.path:
+    sys.path.insert(0, base_path)
+
 from APP.screens import data_entry, reports
 import streamlit as st
 import os
