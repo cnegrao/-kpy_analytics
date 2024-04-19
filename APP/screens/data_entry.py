@@ -1,7 +1,8 @@
-import streamlit as st
-import duckdb
 import os
 import sys
+import streamlit as st
+import duckdb
+
 
 def main():
     st.title("Tela de Entrada de Dados 📊")

@@ -15,7 +15,7 @@ def main():
 
     # Barra lateral para navegação entre as páginas
     st.sidebar.title("Menu")
-    page = st.sidebar.radio("Escolha uma opção:", ["Tela Principal", "Entrada de Dados", "Consulta Analítica", "Análise Acumulada"])
+    page = st.sidebar.radio("Escolha uma opção:", ["Tela Principal", "Entrada de Dados", "Consulta Analítica"])
 
 
  
@@ -42,6 +42,6 @@ def show_main_page():
     """)
     print("Diretório atual:", os.getcwd())
     print("Caminho de busca do Python:", sys.path)
-    
+
 if __name__ == "__main__":
     main()
