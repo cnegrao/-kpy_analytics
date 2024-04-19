@@ -1,5 +1,6 @@
+import data_entry
+import reports
 import streamlit as st
-from APP.screens import data_entry,reports
 import os
 import sys
 
