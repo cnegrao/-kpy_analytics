@@ -3,6 +3,8 @@ import streamlit as st
 import pandas as pd
 import duckdb
 import plotly.graph_objects as go
+import os
+import sys
 
 # Configuração do locale para português do Brasil
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -91,6 +93,9 @@ def display_data_table(df):
 def main():
     st.title("Relatórios de Desempenho")
 
+    print("Diretório2 atual:", os.getcwd())
+    print("Caminho de busca do Python:", sys.path)
+    
     indicators_df = load_data_from_db("SELECT id, kpi_name FROM tb_kpi ORDER BY kpi_name")
     selected_indicator_id = st.selectbox('Selecione o indicador:', indicators_df['id'], format_func=lambda x: indicators_df[indicators_df['id'] == x]['kpi_name'].iloc[0])
 
