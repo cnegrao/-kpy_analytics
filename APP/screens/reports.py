@@ -26,8 +26,13 @@ def load_data_from_db(query):
     with duckdb.connect("app/data/kpi_analytics_db.duckdb") as conn:
         return pd.read_sql_query(query, conn)
 
+#def format_monthly_data(df):
+#    df['Mês'] = df['month'].apply(lambda x: format_date(datetime.date(x, 1, 1), format='MMM', locale='pt_BR'))
+#    df.drop(columns='month', inplace=True)
+#    return df
+
 def format_monthly_data(df):
-    df['Mês'] = df['month'].apply(lambda x: format_date(datetime.date(x, 1, 1), format='MMM', locale='pt_BR'))
+    df['Mês'] = df['month'].apply(lambda x: pd.to_datetime(f'{x}-01', format='%m-%d').strftime('%b'))
     df.drop(columns='month', inplace=True)
     return df
 
@@ -62,9 +67,11 @@ def display_data_table(df):
     df_formatted = df.copy()
     
     # Formatação dos campos de desvio para percentual com duas casas decimais ou vazio, caso não aplicável
-    df_formatted['Desvio (%)'] = df_formatted['Desvio (%)'].apply(lambda x: '' if pd.isna(x) else f"{x:.2f}%")
-    df_formatted['Desvio Acumulado (%)'] = df_formatted['Desvio Acumulado (%)'].apply(lambda x: '' if pd.isna(x) else f"{x:.2f}%")
-    
+    df_formatted['Desvio (%)'] = df_formatted['Desvio (%)'].apply(
+    lambda x: '' if pd.isna(x) else f"{float(x.replace(',', '.')):.2f}%")
+    df_formatted['Desvio Acumulado (%)'] = df_formatted['Desvio Acumulado (%)'].apply(
+    lambda x: '' if pd.isna(x) else f"{float(x.replace(',', '.')):0.2f}%") 
+   
     # Configurações visuais da tabela
     header_color = 'navy'  # Cor de fundo do cabeçalho
     cell_color = 'lightgrey'  # Cor de fundo das células
@@ -98,7 +105,7 @@ def main():
 
     print("Diretório atual:", os.getcwd())
     print("Caminho de busca do Python:", sys.path)
-    
+        
     indicators_df = load_data_from_db("SELECT id, kpi_name FROM tb_kpi ORDER BY kpi_name")
     selected_indicator_id = st.selectbox('Selecione o indicador:', indicators_df['id'], format_func=lambda x: indicators_df[indicators_df['id'] == x]['kpi_name'].iloc[0])
 
@@ -106,8 +113,10 @@ def main():
     if years:
         selected_year = st.selectbox('Selecione o ano:', years)
         monthly_data = load_data_from_db(f"SELECT month, goal as Meta, value as Real FROM tb_monthly_data WHERE kpi_id = {selected_indicator_id} AND year = {selected_year} ORDER BY month ASC")
+        print("Dados mensais formatados (antes conversão para nomes de meses):", monthly_data)
         monthly_data = format_monthly_data(monthly_data)
         indicators_data = calculate_indicators(monthly_data)
+        print("Dados mensais formatados (após conversão para nomes de meses):", monthly_data)
         display_data_table(indicators_data)
 
         col1, col2= st.columns(2)

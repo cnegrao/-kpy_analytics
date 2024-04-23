@@ -8,5 +8,6 @@
             "group": "conn",
             "database": "${workspaceFolder:#kpy_analytics}/APP/data/kpi_analytics_db.duckdb"
         }
-    ]
+    ],
+    "cmake.sourceDirectory": "D:/#kpy_analytics/venv/Lib/site-packages/pyarrow/src/arrow/python"
 }
