@@ -1,4 +1,3 @@
-import locale
 import streamlit as st
 import pandas as pd
 import duckdb
@@ -8,9 +7,19 @@ import sys
 from babel.numbers import format_decimal
 from babel.dates import format_date
 import datetime
+import streamlit as st
+
+import locale
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except locale.Error:
+    print("Locale pt_BR.UTF-8 não suportado, usando o locale padrão.")
+
+
+# Outras importações e lógica do seu aplicativo abaixo
 
 # Configuração do locale para português do Brasil
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+#locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 def create_chart(df, chart_type, x, y, names, colors, title, xaxis_title, yaxis_title):
     fig = go.Figure()
@@ -32,12 +41,12 @@ def format_monthly_data(df):
     return df
 
 def calculate_indicators(df):
-    df['Desvio (%)'] = df.apply(lambda row: (row['Real'] - row['Meta']) / row['Meta'] * 100 if row['Meta'] > 0 else pd.NA, axis=1)
+    df['Desvio (%)'] = df.apply(lambda row: format_decimal((row['Real'] - row['Meta']) / row['Meta'] * 100, format="#,##0.##", locale='pt_BR') if row['Meta'] > 0 else pd.NA, axis=1)
     df['Real Acumulado'] = df['Real'].cumsum()
     df['Meta Acumulada'] = df['Meta'].cumsum()
-    df['Desvio Acumulado (%)'] = df.apply(lambda row: (row['Real Acumulado'] - row['Meta Acumulada']) / row['Meta Acumulada'] * 100 if row['Meta Acumulada'] > 0 else pd.NA, axis=1)
-    df['Farol'] = df['Desvio (%)'].apply(lambda value: '' if pd.isna(value) else '🔵' if value > 110 else '🟢' if value >= 100 else '🟠' if value >= 85 else '🔴')
-    df['Farol Acumulado'] = df['Desvio Acumulado (%)'].apply(lambda value: '' if pd.isna(value) else '🔵' if value > 110 else '🟢' if value >= 100 else '🟠' if value >= 85 else '🔴')
+    df['Desvio Acumulado (%)'] = df.apply(lambda row: format_decimal((row['Real Acumulado'] - row['Meta Acumulada']) / row['Meta Acumulada'] * 100, format="#,##0.##", locale='pt_BR') if row['Meta Acumulada'] > 0 else pd.NA, axis=1)
+    df['Farol'] = df['Desvio (%)'].apply(lambda value: '' if pd.isna(value) else '🔵' if float(value.replace(',', '.')) > 110 else '🟢' if float(value.replace(',', '.')) >= 100 else '🟠' if float(value.replace(',', '.')) >= 85 else '🔴')
+    df['Farol Acumulado'] = df['Desvio Acumulado (%)'].apply(lambda value: '' if pd.isna(value) else '🔵' if float(value.replace(',', '.')) > 110 else '🟢' if float(value.replace(',', '.')) >= 100 else '🟠' if float(value.replace(',', '.')) >= 85 else '🔴')
     
     # Novos cálculos para Lucratividade
     df['Lucratividade Mensal (%)'] = df['Desvio (%)']  # Exemplo, ajuste conforme a regra específica de negócio
@@ -62,9 +71,11 @@ def display_data_table(df):
     df_formatted = df.copy()
     
     # Formatação dos campos de desvio para percentual com duas casas decimais ou vazio, caso não aplicável
-    df_formatted['Desvio (%)'] = df_formatted['Desvio (%)'].apply(lambda x: '' if pd.isna(x) else f"{x:.2f}%")
-    df_formatted['Desvio Acumulado (%)'] = df_formatted['Desvio Acumulado (%)'].apply(lambda x: '' if pd.isna(x) else f"{x:.2f}%")
-    
+    df_formatted['Desvio (%)'] = df_formatted['Desvio (%)'].apply(
+    lambda x: '' if pd.isna(x) else f"{float(x.replace(',', '.')):.2f}%")
+    df_formatted['Desvio Acumulado (%)'] = df_formatted['Desvio Acumulado (%)'].apply(
+    lambda x: '' if pd.isna(x) else f"{float(x.replace(',', '.')):0.2f}%") 
+   
     # Configurações visuais da tabela
     header_color = 'navy'  # Cor de fundo do cabeçalho
     cell_color = 'lightgrey'  # Cor de fundo das células
@@ -96,9 +107,9 @@ def display_data_table(df):
 def main():
     st.title("Relatórios de Desempenho")
 
-    print("Diretório2 atual:", os.getcwd())
+    print("Diretório atual:", os.getcwd())
     print("Caminho de busca do Python:", sys.path)
-    
+        
     indicators_df = load_data_from_db("SELECT id, kpi_name FROM tb_kpi ORDER BY kpi_name")
     selected_indicator_id = st.selectbox('Selecione o indicador:', indicators_df['id'], format_func=lambda x: indicators_df[indicators_df['id'] == x]['kpi_name'].iloc[0])
 
@@ -106,15 +117,15 @@ def main():
     if years:
         selected_year = st.selectbox('Selecione o ano:', years)
         monthly_data = load_data_from_db(f"SELECT month, goal as Meta, value as Real FROM tb_monthly_data WHERE kpi_id = {selected_indicator_id} AND year = {selected_year} ORDER BY month ASC")
+        print("Dados mensais formatados (antes conversão para nomes de meses):", monthly_data)
         monthly_data = format_monthly_data(monthly_data)
         indicators_data = calculate_indicators(monthly_data)
+        print("Dados mensais formatados (após conversão para nomes de meses):", monthly_data)
         display_data_table(indicators_data)
 
-        # Início da seção de colunas para gráficos
         col1, col2= st.columns(2)
 
         with col1:
-            # Gráfico Metas vs Realizados
             fig1 = create_chart(indicators_data, 
                                chart_type=['Bar', 'Scatter'], 
                                x='Mês', 
@@ -127,7 +138,6 @@ def main():
             st.plotly_chart(fig1, use_container_width=True)
 
         with col2:
-            # Gráfico Real Acumulado vs Meta Acumulada
             fig2 = create_chart(indicators_data, 
                                chart_type=['Scatter', 'Scatter'], 
                                x='Mês', 
@@ -138,7 +148,7 @@ def main():
                                xaxis_title='Mês', 
                                yaxis_title='Valor Acumulado')
             st.plotly_chart(fig2, use_container_width=True)
-        
+
         col3, col4 = st.columns(2)
         with col3:
             fig3 = plot_lucratividade_mensal(indicators_data)
@@ -146,8 +156,6 @@ def main():
         with col4:
             fig4 = plot_lucratividade_acumulada(indicators_data)
             st.plotly_chart(fig4, use_container_width=True)
-
-
 
 if __name__ == "__main__":
     main()
