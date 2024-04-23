@@ -1,4 +1,3 @@
-import locale
 import streamlit as st
 import pandas as pd
 import duckdb
@@ -8,9 +7,19 @@ import sys
 from babel.numbers import format_decimal
 from babel.dates import format_date
 import datetime
+import streamlit as st
+
+import locale
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except locale.Error:
+    print("Locale pt_BR.UTF-8 não suportado, usando o locale padrão.")
+
+
+# Outras importações e lógica do seu aplicativo abaixo
 
 # Configuração do locale para português do Brasil
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+#locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 def create_chart(df, chart_type, x, y, names, colors, title, xaxis_title, yaxis_title):
     fig = go.Figure()
@@ -26,15 +35,22 @@ def load_data_from_db(query):
     with duckdb.connect("app/data/kpi_analytics_db.duckdb") as conn:
         return pd.read_sql_query(query, conn)
 
-#def format_monthly_data(df):
-#    df['Mês'] = df['month'].apply(lambda x: format_date(datetime.date(x, 1, 1), format='MMM', locale='pt_BR'))
-#    df.drop(columns='month', inplace=True)
-#    return df
-
 def format_monthly_data(df):
-    df['Mês'] = df['month'].apply(lambda x: pd.to_datetime(f'{x}-01', format='%m-%d').strftime('%b'))
+    # Garantir que 'month' está como inteiro e dentro do intervalo apropriado
+    df['month'] = pd.to_numeric(df['month'], downcast='integer', errors='coerce')
+    df = df.dropna(subset=['month'])  # Remove linhas onde 'month' é NaN após coerção
+    df['month'] = df['month'].astype(int)  # Converte para inteiro para evitar problemas na formatação
+
+    # Converter o número do mês para nome do mês usando Babel com format_month
+    df['Mês'] = df['month'].apply(lambda x: format_month(x, format='MMM', locale='pt_BR').capitalize())
+
     df.drop(columns='month', inplace=True)
     return df
+
+#def format_monthly_data(df):
+#    df['Mês'] = df['month'].apply(lambda x: pd.to_datetime(f'{x}-01', format='%m-%d').strftime('%b'))
+#    df.drop(columns='month', inplace=True)
+#    return df
 
 def calculate_indicators(df):
     df['Desvio (%)'] = df.apply(lambda row: format_decimal((row['Real'] - row['Meta']) / row['Meta'] * 100, format="#,##0.##", locale='pt_BR') if row['Meta'] > 0 else pd.NA, axis=1)
