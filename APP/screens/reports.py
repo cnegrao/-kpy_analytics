@@ -5,6 +5,9 @@ import duckdb
 import plotly.graph_objects as go
 import os
 import sys
+from babel.numbers import format_decimal
+from babel.dates import format_date
+import datetime
 
 # Configuração do locale para português do Brasil
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -24,17 +27,17 @@ def load_data_from_db(query):
         return pd.read_sql_query(query, conn)
 
 def format_monthly_data(df):
-    df['Mês'] = df['month'].apply(lambda x: pd.to_datetime(f'{x}-01', format='%m-%d').strftime('%b'))
+    df['Mês'] = df['month'].apply(lambda x: format_date(datetime.date(x, 1, 1), format='MMM', locale='pt_BR'))
     df.drop(columns='month', inplace=True)
     return df
 
 def calculate_indicators(df):
-    df['Desvio (%)'] = df.apply(lambda row: (row['Real'] - row['Meta']) / row['Meta'] * 100 if row['Meta'] > 0 else pd.NA, axis=1)
+    df['Desvio (%)'] = df.apply(lambda row: format_decimal((row['Real'] - row['Meta']) / row['Meta'] * 100, format="#,##0.##", locale='pt_BR') if row['Meta'] > 0 else pd.NA, axis=1)
     df['Real Acumulado'] = df['Real'].cumsum()
     df['Meta Acumulada'] = df['Meta'].cumsum()
-    df['Desvio Acumulado (%)'] = df.apply(lambda row: (row['Real Acumulado'] - row['Meta Acumulada']) / row['Meta Acumulada'] * 100 if row['Meta Acumulada'] > 0 else pd.NA, axis=1)
-    df['Farol'] = df['Desvio (%)'].apply(lambda value: '' if pd.isna(value) else '🔵' if value > 110 else '🟢' if value >= 100 else '🟠' if value >= 85 else '🔴')
-    df['Farol Acumulado'] = df['Desvio Acumulado (%)'].apply(lambda value: '' if pd.isna(value) else '🔵' if value > 110 else '🟢' if value >= 100 else '🟠' if value >= 85 else '🔴')
+    df['Desvio Acumulado (%)'] = df.apply(lambda row: format_decimal((row['Real Acumulado'] - row['Meta Acumulada']) / row['Meta Acumulada'] * 100, format="#,##0.##", locale='pt_BR') if row['Meta Acumulada'] > 0 else pd.NA, axis=1)
+    df['Farol'] = df['Desvio (%)'].apply(lambda value: '' if pd.isna(value) else '🔵' if float(value.replace(',', '.')) > 110 else '🟢' if float(value.replace(',', '.')) >= 100 else '🟠' if float(value.replace(',', '.')) >= 85 else '🔴')
+    df['Farol Acumulado'] = df['Desvio Acumulado (%)'].apply(lambda value: '' if pd.isna(value) else '🔵' if float(value.replace(',', '.')) > 110 else '🟢' if float(value.replace(',', '.')) >= 100 else '🟠' if float(value.replace(',', '.')) >= 85 else '🔴')
     
     # Novos cálculos para Lucratividade
     df['Lucratividade Mensal (%)'] = df['Desvio (%)']  # Exemplo, ajuste conforme a regra específica de negócio
@@ -93,7 +96,7 @@ def display_data_table(df):
 def main():
     st.title("Relatórios de Desempenho")
 
-    print("Diretório2 atual:", os.getcwd())
+    print("Diretório atual:", os.getcwd())
     print("Caminho de busca do Python:", sys.path)
     
     indicators_df = load_data_from_db("SELECT id, kpi_name FROM tb_kpi ORDER BY kpi_name")
@@ -107,11 +110,9 @@ def main():
         indicators_data = calculate_indicators(monthly_data)
         display_data_table(indicators_data)
 
-        # Início da seção de colunas para gráficos
         col1, col2= st.columns(2)
 
         with col1:
-            # Gráfico Metas vs Realizados
             fig1 = create_chart(indicators_data, 
                                chart_type=['Bar', 'Scatter'], 
                                x='Mês', 
@@ -124,7 +125,6 @@ def main():
             st.plotly_chart(fig1, use_container_width=True)
 
         with col2:
-            # Gráfico Real Acumulado vs Meta Acumulada
             fig2 = create_chart(indicators_data, 
                                chart_type=['Scatter', 'Scatter'], 
                                x='Mês', 
@@ -135,7 +135,7 @@ def main():
                                xaxis_title='Mês', 
                                yaxis_title='Valor Acumulado')
             st.plotly_chart(fig2, use_container_width=True)
-        
+
         col3, col4 = st.columns(2)
         with col3:
             fig3 = plot_lucratividade_mensal(indicators_data)
@@ -143,8 +143,6 @@ def main():
         with col4:
             fig4 = plot_lucratividade_acumulada(indicators_data)
             st.plotly_chart(fig4, use_container_width=True)
-
-
 
 if __name__ == "__main__":
     main()
