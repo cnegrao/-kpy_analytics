@@ -5,9 +5,9 @@ import duckdb
 import plotly.graph_objects as go
 import os
 import sys
-from babel.numbers import format_decimal
-from babel.dates import format_date
 import datetime
+import numpy as np
+
 
 # Configuração do locale para português do Brasil
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -32,12 +32,54 @@ def format_monthly_data(df):
     return df
 
 def calculate_indicators(df):
-    df['Desvio (%)'] = df.apply(lambda row: (row['Real'] - row['Meta']) / row['Meta'] * 100 if row['Meta'] > 0 else pd.NA, axis=1)
+    
+    # Calculando os desvios percentuais
+    # Calculando os desvios percentuais
+    df['Desvio (%)'] = df.apply(
+        lambda row: ((row['Real'] - row['Meta']) / row['Meta'] * 100) if row['Meta'] > 0 else None,
+        #lambda row: ((row['Real'] / row['Meta'])*100)  if row['Meta'] > 0 else None,
+        axis=1
+    )
+
+    # Calculando o desvio acumulado
     df['Real Acumulado'] = df['Real'].cumsum()
     df['Meta Acumulada'] = df['Meta'].cumsum()
-    df['Desvio Acumulado (%)'] = df.apply(lambda row: (row['Real Acumulado'] - row['Meta Acumulada']) / row['Meta Acumulada'] * 100 if row['Meta Acumulada'] > 0 else pd.NA, axis=1)
-    df['Farol'] = df['Desvio (%)'].apply(lambda value: '' if pd.isna(value) else '🔵' if value > 110 else '🟢' if value >= 100 else '🟠' if value >= 85 else '🔴')
-    df['Farol Acumulado'] = df['Desvio Acumulado (%)'].apply(lambda value: '' if pd.isna(value) else '🔵' if value > 110 else '🟢' if value >= 100 else '🟠' if value >= 85 else '🔴')
+    df['Desvio Acumulado (%)'] = df.apply(
+        lambda row: ((row['Real Acumulado'] - row['Meta Acumulada']) / row['Meta Acumulada'] * 100) if row['Meta Acumulada'] > 0 else None,
+        axis=1
+    )
+
+    # Debug: Imprime os desvios para verificar os valores
+    print(df[['Desvio (%)', 'Desvio Acumulado (%)']])
+
+   # Calculando o atingimento de meta em percentual
+    df['Atingimento de Meta (%)'] = df.apply(
+        lambda row: (row['Real'] / row['Meta'] * 100) if row['Meta'] > 0 else None,
+        axis=1
+    )
+
+    # Aplicando os faróis baseado no atingimento de meta
+    df['Farol'] = df['Atingimento de Meta (%)'].apply(
+        lambda value: '' if value is None else
+                      '🔵' if value > 110 else
+                      '🟢' if value >= 100 else
+                      '🟡' if value >= 85 else
+                      '🔴' if value < 85 else 'Error'
+    )
+   
+   # Calculando o atingimento acumulado de meta em percentual
+    df['Atingimento Acumulado de Meta (%)'] = df.apply(
+        lambda row: (row['Real Acumulado'] / row['Meta Acumulada'] * 100) if row['Meta Acumulada'] > 0 else None,
+        axis=1
+    )
+    
+    df['Farol Acumulado'] = df['Atingimento Acumulado de Meta (%)'].apply(
+        lambda value: '' if value is None else
+                      '🔵' if value > 110 else
+                      '🟢' if 100 <= value <= 110 else
+                      '🟡' if 85 <= value < 100 else
+                      '🔴' if value < 85 else 'Error'
+    )
     
     # Novos cálculos para Lucratividade
     df['Lucratividade Mensal (%)'] = df['Desvio (%)']  # Exemplo, ajuste conforme a regra específica de negócio
@@ -70,7 +112,7 @@ def display_data_table(df):
     cell_color = 'lightgrey'  # Cor de fundo das células
     text_color = 'white'  # Cor do texto
     font_size = 12  # Tamanho da fonte
-    
+    print(df_formatted)
     # Criação da tabela Plotly
     fig = go.Figure(data=[go.Table(
         header=dict(
