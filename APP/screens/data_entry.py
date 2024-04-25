@@ -3,9 +3,29 @@ import streamlit as st
 import duckdb
 
 # Função para obter a conexão com o banco de dados
+import os
+import duckdb
+
+import os
+import duckdb
+
 def get_db_connection():
-    db_path = os.path.join(os.getcwd(), 'app', 'data', 'kpi_analytics_db.duckdb')
-    return duckdb.connect(db_path)
+    # Verifica se está em ambiente de produção (ajuste a variável de ambiente conforme necessário)
+    if os.getenv('PRODUCTION'):
+        db_path = '/mount/src/-kpy_analytics/app/data/kpi_analytics_db.duckdb'
+    else:
+        # Caminho local
+        db_path = os.path.join(os.getcwd(), 'app', 'data', 'kpi_analytics_db.duckdb')
+
+    print(f"Connecting to database at: {db_path}")
+    
+    try:
+        return duckdb.connect(db_path)
+    except Exception as e:
+        print(f"Failed to connect to the database at {db_path}. Error: {e}")
+        raise  # Relança o erro para cima para que possa ser tratado ou registrado em outro lugar
+
+
 
 # Função para carregar indicadores
 def load_indicators():
