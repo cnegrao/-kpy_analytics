@@ -5,6 +5,10 @@ import duckdb
 # Função para obter a conexão com o banco de dados
 def get_db_connection():
     # Determina o caminho do banco de dados com base no ambiente
+    print("Diretório atual de trabalho:", os.getcwd())
+    print("Caminho absoluto do script:", os.path.abspath(__file__))
+    print("Diretório do script:", os.path.dirname(os.path.abspath(__file__)))
+
     if os.getenv('PRODUCTION'):
         # Caminho em ambiente de produção
         db_path = '/mount/src/-kpy_analytics/APP/data/kpi_analytics_db.duckdb'
