@@ -7,10 +7,10 @@ def get_db_connection():
     # Determina o caminho do banco de dados com base no ambiente
     if os.getenv('PRODUCTION'):
         # Caminho em ambiente de produção
-        db_path = '/mount/src/-kpy_analytics/app/data/kpi_analytics_db.duckdb'
+        db_path = '/mount/src/-kpy_analytics/APP/data/kpi_analytics_db.duckdb'
     else:
         # Caminho local para desenvolvimento
-        db_path = os.path.join(os.getcwd(), 'app', 'data', 'kpi_analytics_db.duckdb')
+        db_path = os.path.join(os.getcwd(), 'APP', 'data', 'kpi_analytics_db.duckdb')
 
     print(f"Connecting to database at: {db_path}")
     

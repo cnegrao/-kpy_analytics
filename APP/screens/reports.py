@@ -11,19 +11,20 @@ import sys
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 def get_db_connection():
+    # Verifica se está em ambiente de produção (ajuste a variável de ambiente conforme necessário)
+    if os.getenv('PRODUCTION'):
+        db_path = '/mount/src/-kpy_analytics/APP/data/kpi_analytics_db.duckdb'
+    else:
+        # Caminho local
+        db_path = os.path.join(os.getcwd(), 'APP', 'data', 'kpi_analytics_db.duckdb')
+
+    print(f"Connecting to database at: {db_path}")
+    
     try:
-        # Constrói o caminho para o arquivo do banco de dados baseado no diretório de trabalho atual
-        db_path = os.path.join(os.getcwd(), 'app', 'data', 'kpi_analytics_db.duckdb')
-        # Exibe o caminho do banco de dados para depuração
-        print(f"Connecting to database at: {db_path}")
-        # Conecta-se ao banco de dados DuckDB
         return duckdb.connect(db_path)
     except Exception as e:
-        # Imprime uma mensagem de erro e retorna None ou relança o erro
         print(f"Failed to connect to the database at {db_path}. Error: {e}")
-        # Descomente a linha abaixo para relançar o erro após a captura, se desejado
-        # raise
-        return None
+        raise  # Relança o erro para cima para que possa ser tratado ou registrado em outro lugar
     
 def create_chart(df, chart_type, x, y, names, colors, title, xaxis_title, yaxis_title):
     fig = go.Figure()
