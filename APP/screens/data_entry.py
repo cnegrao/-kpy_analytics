@@ -3,12 +3,6 @@ import streamlit as st
 import duckdb
 
 # Função para obter a conexão com o banco de dados
-import os
-import duckdb
-
-import os
-import duckdb
-
 def get_db_connection():
     # Determina o caminho do banco de dados com base no ambiente
     if os.getenv('PRODUCTION'):
