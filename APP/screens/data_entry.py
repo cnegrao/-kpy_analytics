@@ -10,21 +10,25 @@ import os
 import duckdb
 
 def get_db_connection():
-    # Verifica se está em ambiente de produção (ajuste a variável de ambiente conforme necessário)
+    # Determina o caminho do banco de dados com base no ambiente
     if os.getenv('PRODUCTION'):
+        # Caminho em ambiente de produção
         db_path = '/mount/src/-kpy_analytics/app/data/kpi_analytics_db.duckdb'
     else:
-        # Caminho local
+        # Caminho local para desenvolvimento
         db_path = os.path.join(os.getcwd(), 'app', 'data', 'kpi_analytics_db.duckdb')
 
     print(f"Connecting to database at: {db_path}")
     
     try:
-        return duckdb.connect(db_path)
+        # Tenta conectar ao banco de dados e retorna a conexão
+        connection = duckdb.connect(db_path)
+        print("Connection successful!")
+        return connection
     except Exception as e:
+        # Caso ocorra um erro, exibe e relança
         print(f"Failed to connect to the database at {db_path}. Error: {e}")
-        raise  # Relança o erro para cima para que possa ser tratado ou registrado em outro lugar
-
+        raise
 
 
 # Função para carregar indicadores
