@@ -1,7 +1,11 @@
 import os
 import streamlit as st
 import duckdb
+from datetime import datetime
 
+# Obtém o mês atual
+current_month = datetime.now().month
+current_year = datetime.now().year
 # Função para obter a conexão com o banco de dados
 
 
@@ -35,7 +39,8 @@ def get_db_connection():
 # Função para carregar indicadores
 def load_indicators():
     with get_db_connection() as conn:
-        indicators = conn.execute("SELECT id, kpi_name FROM tb_kpi").fetchall()
+        indicators = conn.execute(
+            "SELECT id, kpi_name FROM tb_kpi order by kpi_name").fetchall()
     return [(indicator[0], indicator[1]) for indicator in indicators]
 
 # Função para salvar os dados inseridos
@@ -78,10 +83,10 @@ def main():
         col1, col2 = st.columns(2)
         with col1:
             year = st.number_input(
-                "Ano", min_value=2024, max_value=2025, value=2024, help="Selecione o ano desejado.")
+                "Ano", min_value=2024, max_value=2026, value=current_year, help="Selecione o ano desejado.")
         with col2:
-            month = st.selectbox("Mês", range(
-                1, 13), index=0, help="Selecione o mês desejado.")
+            month = st.number_input(
+                "Mês", min_value=1, max_value=12, value=current_month, help="Selecione o mês desejado.")
 
     with st.container():
         st.subheader("Defina Valor e Meta 💹")
