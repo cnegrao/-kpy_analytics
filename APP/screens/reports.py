@@ -20,7 +20,7 @@ def get_db_connection():
         db_path = os.path.join(os.getcwd(), 'APP', 'data',
                                'kpi_analytics_db.duckdb')
 
-    print(f"Connecting to database at: {db_path}")
+    # print(f"Connecting to database at: {db_path}")
 
     try:
         return duckdb.connect(db_path)
@@ -80,7 +80,7 @@ def calculate_indicators(df):
     )
 
     # Debug: Imprime os desvios para verificar os valores
-    print(df[['Desvio (%)', 'Desvio Acumulado (%)']])
+    # print(df[['Desvio (%)', 'Desvio Acumulado (%)']])
 
    # Calculando o atingimento de meta em percentual
     df['Atingimento de Meta (%)'] = df.apply(
@@ -155,7 +155,7 @@ def display_data_table(df):
     cell_color = 'lightgrey'  # Cor de fundo das células
     text_color = 'white'  # Cor do texto
     font_size = 12  # Tamanho da fonte
-    print(df_formatted)
+    # print(df_formatted)
     # Criação da tabela Plotly
     fig = go.Figure(data=[go.Table(
         header=dict(
@@ -186,8 +186,8 @@ def display_data_table(df):
 def main():
     st.title("Relatórios de Desempenho")
 
-    print("Diretório2 atual:", os.getcwd())
-    print("Caminho de busca do Python:", sys.path)
+    # print("Diretório2 atual:", os.getcwd())
+    # print("Caminho de busca do Python:", sys.path)
 
     indicators_df = load_data_from_db(
         "SELECT DISTINCT kpi.id, kpi.kpi_name FROM tb_kpi AS kpi INNER JOIN tb_monthly_data AS data ON kpi.id = data.kpi_id ORDER BY kpi.kpi_name")
