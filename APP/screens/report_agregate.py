@@ -4,7 +4,7 @@ import duckdb
 import locale
 import plotly.graph_objects as go
 import os
-import datetime  # Importação do módulo datetime
+import datetime
 
 # Configuração do locale para português do Brasil
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -30,15 +30,19 @@ def get_db_connection():
         st.error(f"Failed to connect to the database at {db_path}. Error: {e}")
         raise
 
-# Função para carregar os dados
+# Função para carregar os dados para uma categoria específica
 
 
-def load_data(selected_year, selected_month):
+def load_data_for_category(selected_year, selected_month, category_id):
     query = f"""
     SELECT 
         kpi.kpi_name AS Indicador,
         kpi.unity AS Unidade,
-        kpi.direction AS Melhor,
+        CASE 
+            WHEN kpi.direction = 'up' THEN '⬆️'
+            WHEN kpi.direction = 'down' THEN '⬇️'
+            ELSE kpi.direction
+        END AS Melhor,
         md.goal AS Meta,
         md.value AS Real,
         CASE
@@ -62,7 +66,7 @@ def load_data(selected_year, selected_month):
     JOIN 
         tb_monthly_data md ON kpi.id = md.kpi_id
     WHERE 
-        md.year = {selected_year} AND md.month = {selected_month}
+        kpi.idKpiCategory = {category_id} AND md.year = {selected_year} AND md.month = {selected_month}
     ORDER BY 
         kpi.id, md.year, md.month;
     """
@@ -103,11 +107,37 @@ def display_data_table(df):
     # Exibição da tabela no Streamlit
     st.plotly_chart(fig, use_container_width=True)
 
+# Função para criar gráficos acumulados
+
+
+def create_accumulated_chart(df, title):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df['Indicador'],
+        y=df['Meta_Acumulada'],
+        mode='lines+markers',
+        name='Meta Acumulada',
+        line=dict(color='blue', width=2)
+    ))
+    fig.add_trace(go.Scatter(
+        x=df['Indicador'],
+        y=df['Real_Acumulado'],
+        mode='lines+markers',
+        name='Real Acumulado',
+        line=dict(color='red', width=2)
+    ))
+    fig.update_layout(
+        title=title,
+        xaxis_title='Indicadores',
+        yaxis_title='Valores Acumulados'
+    )
+    return fig
+
 # Função principal que roda a aplicação
 
 
 def main():
-    st.title("Relatório Agregado de Indicadores")
+    st.title("Relatório Agregado de Indicadores por Categoria")
 
     # Filtros para ano e mês
     current_year = datetime.datetime.now().year
@@ -118,11 +148,33 @@ def main():
     selected_month = st.selectbox(
         'Selecione o Mês:', range(1, 13), index=current_month - 1)
 
-    # Carrega os dados do banco de dados
-    df = load_data(selected_year, selected_month)
+    # IDs das categorias (substitua pelos IDs reais)
+    categories = {
+        1: 'APRESENTAÇÃO FINANCEIRA',
+        2: 'APRESENTAÇÃO PESSOAS E TECNOLOGIA',
+        3: 'APRESENTAÇÃO CLIENTES',
+        4: 'APRESENTAÇÃO PROCESSOS'
+    }
 
-    # Exibe a tabela de dados
-    display_data_table(df)
+    # Filtro de categoria
+    category_names = list(categories.values())
+    selected_category_name = st.selectbox(
+        'Selecione a Categoria:', category_names)
+    selected_category_id = list(categories.keys())[
+        category_names.index(selected_category_name)]
+
+    st.header(f"Categoria: {selected_category_name}")
+    df = load_data_for_category(
+        selected_year, selected_month, selected_category_id)
+    if not df.empty:
+        display_data_table(df)
+        # Adiciona o gráfico acumulado para a categoria
+        fig = create_accumulated_chart(
+            df, f"Gráfico Acumulado - {selected_category_name}")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.write(
+            f"Nenhum dado encontrado para a categoria {selected_category_name} no período selecionado.")
 
 
 if __name__ == "__main__":
