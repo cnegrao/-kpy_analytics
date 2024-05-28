@@ -49,7 +49,6 @@ def load_indicators():
 def save_data(year, month, selected_indicator_id, goal, value):
     try:
         # Formatando goal e value para duas casas decimais
-       # Formatando goal e value para duas casas decimais
         goal = round(float(goal), 2)
         value = round(float(value), 2)
 
@@ -58,14 +57,15 @@ def save_data(year, month, selected_indicator_id, goal, value):
             existing = conn.execute("SELECT * FROM tb_monthly_data WHERE kpi_id = ? AND year = ? AND month = ?",
                                     (selected_indicator_id, year, month)).fetchall()
             if existing:
-                st.error(
-                    "Erro: Já existe registro para o indicador selecionado no período especificado. Por favor, verifique e tente novamente.")
-                return
-
-            # Insere os novos dados se não houver duplicidade
-            conn.execute("INSERT INTO tb_monthly_data (kpi_id, year, month, goal, value) VALUES (?, ?, ?, ?, ?)",
-                         (selected_indicator_id, year, month, goal, value))
-            st.success("Dados enviados com sucesso! ✅")
+                # Atualiza os dados existentes
+                conn.execute("UPDATE tb_monthly_data SET goal = ?, value = ? WHERE kpi_id = ? AND year = ? AND month = ?",
+                             (goal, value, selected_indicator_id, year, month))
+                st.success("Dados atualizados com sucesso! ✅")
+            else:
+                # Insere os novos dados se não houver duplicidade
+                conn.execute("INSERT INTO tb_monthly_data (kpi_id, year, month, goal, value) VALUES (?, ?, ?, ?, ?)",
+                             (selected_indicator_id, year, month, goal, value))
+                st.success("Dados inseridos com sucesso! ✅")
     except duckdb.OperationalError as e:
         st.error(
             "Erro técnico ao enviar os dados. Por favor, tente novamente ou contate o suporte.")
