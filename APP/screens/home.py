@@ -1,14 +1,27 @@
 import streamlit as st
-from APP.screens import data_entry, reports
 import sys
 import os
 
 # Determinar o caminho base com base no sistema operacional
-base_path = 'D:\\#kpy_analytics' if os.name == 'nt' else '/mount/src/-kpy_analytics'
+base_path = os.path.abspath(os.path.join(os.getcwd(), 'APP'))
+print(f"Base path: {base_path}")
 
 # Adicionar o caminho base ao sys.path se ainda não estiver incluído
 if base_path not in sys.path:
     sys.path.insert(0, base_path)
+    print(f"Base path added to sys.path: {base_path}")
+else:
+    print(f"Base path already in sys.path: {base_path}")
+
+# Verifique o sys.path para garantir que o caminho está correto
+print(f"sys.path: {sys.path}")
+
+# Agora tentar importar os módulos após adicionar o caminho base
+try:
+    from screens import data_entry, reports, report_agregate
+    print("Modules imported successfully.")
+except ModuleNotFoundError as e:
+    print(f"Error importing modules: {e}")
 
 
 def main():
@@ -35,10 +48,10 @@ def main():
     elif page == "Consulta Analítica":
         reports.main()
         show_title = False
-        # Se estamos na página principal e a variável de controle é verdadeira, mostramos o título
     elif page == "Consulta Agregada":
         report_agregate.main()
         show_title = False
+
     if page == "Tela Principal" and show_title:
         show_main_page()
 
