@@ -46,6 +46,7 @@ def create_chart(df, chart_type, x, y, names, colors, title, xaxis_title, yaxis_
 def load_data_from_db(query):
     try:
         with get_db_connection() as conn:
+            print(query)
             return pd.read_sql_query(query, conn)
     except Exception as e:
         print("Erro ao carregar dados:", e)
@@ -61,6 +62,7 @@ def format_monthly_data(df):
 
 def calculate_indicators(df):
 
+    print(df)
     # Calculando os desvios percentuais
     df['Desvio (%)'] = df.apply(
         lambda row: ((row['Real'] - row['Meta']) / row['Meta']
@@ -70,8 +72,10 @@ def calculate_indicators(df):
     )
 
     # Calculando o desvio acumulado
-    df['Real Acumulado'] = df['Real'].cumsum()
-    df['Meta Acumulada'] = df['Meta'].cumsum()
+    df['Real Acumulado'] = df['Real'].cumsum().apply(lambda x: round(x, 2))
+    df['Meta Acumulada'] = df['Meta'].cumsum().apply(lambda x: round(x, 2))
+    # df['Real Acumulado'] = df['Real'].cumsum()
+    # df['Meta Acumulada'] = df['Meta'].cumsum()
 
     df['Desvio Acumulado (%)'] = df.apply(
         lambda row: ((row['Real Acumulado'] - row['Meta Acumulada']) /
@@ -155,7 +159,7 @@ def display_data_table(df):
     cell_color = 'lightgrey'  # Cor de fundo das células
     text_color = 'white'  # Cor do texto
     font_size = 12  # Tamanho da fonte
-    # print(df_formatted)
+    print(df_formatted)
     # Criação da tabela Plotly
     fig = go.Figure(data=[go.Table(
         header=dict(

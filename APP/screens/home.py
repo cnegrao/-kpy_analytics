@@ -1,3 +1,5 @@
+import streamlit as st
+from APP.screens import data_entry, reports
 import sys
 import os
 
@@ -8,10 +10,6 @@ base_path = 'D:\\#kpy_analytics' if os.name == 'nt' else '/mount/src/-kpy_analyt
 if base_path not in sys.path:
     sys.path.insert(0, base_path)
 
-from APP.screens import data_entry, reports
-import streamlit as st
-import os
-import sys
 
 def main():
     # Configuração da página
@@ -24,10 +22,9 @@ def main():
 
     # Barra lateral para navegação entre as páginas
     st.sidebar.title("Menu")
-    page = st.sidebar.radio("Escolha uma opção:", ["Tela Principal", "Entrada de Dados", "Consulta Analítica"])
+    page = st.sidebar.radio("Escolha uma opção:", [
+                            "Tela Principal", "Entrada de Dados", "Consulta Analítica", "Consulta Agregada"])
 
-
- 
     # Variável de controle para mostrar ou não o título
     show_title = True
 
@@ -39,8 +36,12 @@ def main():
         reports.main()
         show_title = False
         # Se estamos na página principal e a variável de controle é verdadeira, mostramos o título
+    elif page == "Consulta Agregada":
+        report_agregate.main()
+        show_title = False
     if page == "Tela Principal" and show_title:
         show_main_page()
+
 
 def show_main_page():
     # Título e descrição da tela principal
@@ -51,6 +52,7 @@ def show_main_page():
     """)
     print("Diretório atual:", os.getcwd())
     print("Caminho de busca do Python:", sys.path)
+
 
 if __name__ == "__main__":
     main()

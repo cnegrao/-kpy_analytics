@@ -48,6 +48,11 @@ def load_indicators():
 
 def save_data(year, month, selected_indicator_id, goal, value):
     try:
+        # Formatando goal e value para duas casas decimais
+       # Formatando goal e value para duas casas decimais
+        goal = round(float(goal), 2)
+        value = round(float(value), 2)
+
         with get_db_connection() as conn:
             # Verifica se já existe um registro para este indicador no mês e ano especificados
             existing = conn.execute("SELECT * FROM tb_monthly_data WHERE kpi_id = ? AND year = ? AND month = ?",
