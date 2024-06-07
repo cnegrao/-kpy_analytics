@@ -97,11 +97,11 @@ def main():
         st.subheader("Defina Valor e Meta 💹")
         col3, col4 = st.columns(2)
         with col3:
-            value = st.number_input(
-                "Valor", min_value=0.01, value=0.01, step=0.01, help="Insira o valor alcançado.")
-        with col4:
             goal = st.number_input(
-                "Meta", min_value=0.01, value=0.01, step=0.01, help="Insira a meta estabelecida.")
+                "Meta", min_value=0.00, value=0.00, step=0.01, help="Insira a meta estabelecida.")
+        with col4:
+            value = st.number_input(
+                "Valor", min_value=0.00, value=0.00, step=0.01, help="Insira o valor alcançado.")
 
     submit_button = st.button("Enviar Dados 🚀")
     if submit_button:
