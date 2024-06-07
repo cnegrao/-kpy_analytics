@@ -1,9 +1,9 @@
+import os
 import streamlit as st
 import pandas as pd
 import duckdb
 import locale
 import plotly.graph_objects as go
-import os
 import datetime
 
 # Configuração do locale para português do Brasil
@@ -66,7 +66,7 @@ def load_data_for_category(selected_year, selected_month, category_id):
     JOIN 
         tb_monthly_data md ON kpi.id = md.kpi_id
     WHERE 
-        kpi.idKpiCategory = {category_id} AND md.year = {selected_year} AND md.month = {selected_month}
+        kpi.idKpiCategory = {category_id} AND md.year = {selected_year} AND md.month <= {selected_month}
     ORDER BY 
         kpi.id, md.year, md.month;
     """
@@ -78,12 +78,20 @@ def load_data_for_category(selected_year, selected_month, category_id):
 
 def display_data_table(df):
     # Formatação dos campos para exibição
-    df['Meta'] = df['Meta'].apply(lambda x: f"{x:.2f}")
-    df['Real'] = df['Real'].apply(lambda x: f"{x:.2f}")
-    df['Meta_Acumulada'] = df['Meta_Acumulada'].apply(lambda x: f"{x:.2f}")
-    df['Real_Acumulado'] = df['Real_Acumulado'].apply(lambda x: f"{x:.2f}")
+    df['Meta'] = df['Meta'].apply(lambda x: f"{x * 100:.2f}%")
+    df['Real'] = df['Real'].apply(lambda x: f"{x * 100:.2f}%")
+    df['Meta_Acumulada'] = df['Meta_Acumulada'].apply(
+        lambda x: f"{x * 100:.2f}%")
+    df['Real_Acumulado'] = df['Real_Acumulado'].apply(
+        lambda x: f"{x * 100:.2f}%")
     df['Absoluto'] = df['Absoluto'].apply(lambda x: f"{x:.2f}")
     df['Relativo'] = df['Relativo'].apply(lambda x: f"{x:.2f}%")
+
+    # Renomear colunas
+    df.rename(columns={
+        'Meta_Acumulada': 'Meta Acumulada (%)',
+        'Real_Acumulado': 'Real Acumulado (%)'
+    }, inplace=True)
 
     # Criação da tabela Plotly
     fig = go.Figure(data=[go.Table(
@@ -114,14 +122,14 @@ def create_accumulated_chart(df, title):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df['Indicador'],
-        y=df['Meta_Acumulada'],
+        y=df['Meta_Acumulada'].apply(lambda x: float(x.strip('%'))),
         mode='lines+markers',
         name='Meta Acumulada',
         line=dict(color='blue', width=2)
     ))
     fig.add_trace(go.Scatter(
         x=df['Indicador'],
-        y=df['Real_Acumulado'],
+        y=df['Real_Acumulado'].apply(lambda x: float(x.strip('%'))),
         mode='lines+markers',
         name='Real Acumulado',
         line=dict(color='red', width=2)
@@ -129,7 +137,7 @@ def create_accumulated_chart(df, title):
     fig.update_layout(
         title=title,
         xaxis_title='Indicadores',
-        yaxis_title='Valores Acumulados'
+        yaxis_title='Valores Acumulados (%)'
     )
     return fig
 
@@ -150,10 +158,10 @@ def main():
 
     # IDs das categorias (substitua pelos IDs reais)
     categories = {
-        1: 'APRESENTAÇÃO FINANCEIRA',
-        2: 'APRESENTAÇÃO PESSOAS E TECNOLOGIA',
-        3: 'APRESENTAÇÃO CLIENTES',
-        4: 'APRESENTAÇÃO PROCESSOS'
+        1: 'Apresentação Financeira',
+        2: 'Apresentação Pessoas e Tecnologia',
+        3: 'Apresentação Clientes',
+        4: 'Apresentação Processos'
     }
 
     # Filtro de categoria

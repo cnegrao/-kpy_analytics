@@ -149,6 +149,10 @@ def display_data_table(df):
     df_formatted = df.copy()
 
     # Formatação dos campos de desvio para percentual com duas casas decimais ou vazio, caso não aplicável
+    df_formatted['Meta'] = df_formatted['Meta'].apply(
+        lambda x: f"{x * 100:.2f}%")
+    df_formatted['Real'] = df_formatted['Real'].apply(
+        lambda x: f"{x * 100:.2f}%")
     df_formatted['Desvio (%)'] = df_formatted['Desvio (%)'].apply(
         lambda x: '' if pd.isna(x) else f"{x:.2f}%")
     df_formatted['Desvio Acumulado (%)'] = df_formatted['Desvio Acumulado (%)'].apply(
