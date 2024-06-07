@@ -153,6 +153,10 @@ def display_data_table(df):
         lambda x: f"{x * 100:.2f}%")
     df_formatted['Real'] = df_formatted['Real'].apply(
         lambda x: f"{x * 100:.2f}%")
+    df_formatted['Meta Acumulada'] = df_formatted['Meta Acumulada'].apply(
+        lambda x: f"{x * 100:.2f}%")
+    df_formatted['Real Acumulado'] = df_formatted['Real Acumulado'].apply(
+        lambda x: f"{x * 100:.2f}%")
     df_formatted['Desvio (%)'] = df_formatted['Desvio (%)'].apply(
         lambda x: '' if pd.isna(x) else f"{x:.2f}%")
     df_formatted['Desvio Acumulado (%)'] = df_formatted['Desvio Acumulado (%)'].apply(

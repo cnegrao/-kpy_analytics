@@ -122,14 +122,14 @@ def create_accumulated_chart(df, title):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df['Indicador'],
-        y=df['Meta_Acumulada'].apply(lambda x: float(x.strip('%'))),
+        y=df['Meta Acumulada (%)'].apply(lambda x: float(x.strip('%'))),
         mode='lines+markers',
         name='Meta Acumulada',
         line=dict(color='blue', width=2)
     ))
     fig.add_trace(go.Scatter(
         x=df['Indicador'],
-        y=df['Real_Acumulado'].apply(lambda x: float(x.strip('%'))),
+        y=df['Real Acumulado (%)'].apply(lambda x: float(x.strip('%'))),
         mode='lines+markers',
         name='Real Acumulado',
         line=dict(color='red', width=2)
@@ -140,6 +140,7 @@ def create_accumulated_chart(df, title):
         yaxis_title='Valores Acumulados (%)'
     )
     return fig
+
 
 # Função principal que roda a aplicação
 
