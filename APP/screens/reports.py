@@ -190,17 +190,17 @@ def display_data_table(df):
 
     def display_farois_legend():
         # Reduzir o espaço e ajustar o tamanho da fonte da legenda
-    st.markdown(
-        """
-        <div style='font-size: 12px; margin-top: -20px;'>
-        <b>Legenda dos Faróis de Atingimento de Meta:</b><br>
-        - **🔵**: Atingimento superior a 110%<br>
-        - **🟢**: Atingimento entre 100% e 110%<br>
-        - **🟡**: Atingimento entre 85% e 99%<br>
-        - **🔴**: Atingimento inferior a 85%
-        </div>
-        """, unsafe_allow_html=True
-    )
+        st.markdown(
+            """
+            <div style='font-size: 12px; margin-top: -20px;'>
+            <b>Legenda dos Faróis de Atingimento de Meta:</b><br>
+            - **🔵**: Atingimento superior a 110%<br>
+            - **🟢**: Atingimento entre 100% e 110%<br>
+            - **🟡**: Atingimento entre 85% e 99%<br>
+            - **🔴**: Atingimento inferior a 85%
+            </div>
+            """, unsafe_allow_html=True
+        )
 
     # Ajustes finais de layout
     fig.update_layout(margin=dict(l=10, r=10, t=10, b=10))
