@@ -144,6 +144,16 @@ def plot_lucratividade_acumulada(df):
     return fig
 
 
+def display_farois_legend():
+    st.markdown("### Legenda dos Faróis de Atingimento de Meta")
+    st.markdown("""
+    - **🔵**: Atingimento superior a 110%
+    - **🟢**: Atingimento entre 100% e 110%
+    - **🟡**: Atingimento entre 85% e 99%
+    - **🔴**: Atingimento inferior a 85%
+    """)
+
+
 def display_data_table(df):
     # Cópia do DataFrame para manipulação
     df_formatted = df.copy()
@@ -215,6 +225,9 @@ def main():
         monthly_data = format_monthly_data(monthly_data)
         indicators_data = calculate_indicators(monthly_data)
         display_data_table(indicators_data)
+
+        # Exibir a legenda dos faróis após a tabela
+        display_farois_legend()
 
         # Início da seção de colunas para gráficos
         col1, col2 = st.columns(2)
