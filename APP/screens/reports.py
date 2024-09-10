@@ -166,7 +166,7 @@ def display_data_table(df):
     header_color = 'navy'  # Cor de fundo do cabeçalho
     cell_color = 'lightgrey'  # Cor de fundo das células
     text_color = 'white'  # Cor do texto
-    font_size = 10  # Tamanho da fonte
+    font_size = 12  # Tamanho da fonte
     print(df_formatted)
     # Criação da tabela Plotly
     fig = go.Figure(data=[go.Table(
@@ -188,25 +188,26 @@ def display_data_table(df):
         )
     )])
 
-    def display_farois_legend():
-        # Reduzir o espaço e ajustar o tamanho da fonte da legenda
-        st.markdown(
-            """
-            <div style='font-size: 12px; margin-top: -20px;'>
-            <b>Legenda dos Faróis de Atingimento de Meta:</b><br>
-            - **🔵**: Atingimento superior a 110%<br>
-            - **🟢**: Atingimento entre 100% e 110%<br>
-            - **🟡**: Atingimento entre 85% e 99%<br>
-            - **🔴**: Atingimento inferior a 85%
-            </div>
-            """, unsafe_allow_html=True
-        )
-
     # Ajustes finais de layout
     fig.update_layout(margin=dict(l=10, r=10, t=10, b=10))
 
     # Exibição da tabela no Streamlit
     st.plotly_chart(fig, use_container_width=True)
+
+
+def display_farois_legend():
+    # Código da legenda
+    st.markdown(
+        """
+        <div style='font-size: 10px; margin-top: -20px;'>
+        <b>Legenda dos Faróis de Atingimento de Meta:</b><br>
+        - **🔵**: Atingimento superior a 110%<br>
+        - **🟢**: Atingimento entre 100% e 110%<br>
+        - **🟡**: Atingimento entre 85% e 99%<br>
+        - **🔴**: Atingimento inferior a 85%
+        </div>
+        """, unsafe_allow_html=True
+    )
 
 
 def main():
