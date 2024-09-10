@@ -27,7 +27,7 @@ except ModuleNotFoundError as e:
 def main():
     # Configuração da página
     st.set_page_config(
-        page_title="Minha Aplicação Streamlit",
+        page_title="SMD - Sistema de Medição de Desempenho",
         page_icon=":chart_with_upwards_trend:",
         layout="wide",
         initial_sidebar_state="expanded"
@@ -58,9 +58,9 @@ def main():
 
 def show_main_page():
     # Título e descrição da tela principal
-    st.title("Bem-vindo à minha aplicação")
+    st.title("Bem-vindo ao SMD - Sistema de Medição de Desempenho")
     st.write("""
-        Esta é a tela principal da aplicação. 
+        Tela principal da aplicação. 
         Use o menu à esquerda para navegar entre as diferentes funcionalidades disponíveis.
     """)
     print("Diretório atual:", os.getcwd())

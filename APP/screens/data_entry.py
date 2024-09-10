@@ -75,7 +75,7 @@ def save_data(year, month, selected_indicator_id, goal, value):
 
 # Função principal que roda a aplicação
 def main():
-    st.title("Tela de Entrada de Dados 📊")
+    st.title("Entrada de Dados 📊")
 
     with st.container():
         st.subheader("Selecione o Indicador 🔍")
