@@ -196,10 +196,10 @@ def display_data_table(df):
 
 
 def display_farois_legend():
-    # Código da legenda
+    # Código da legenda com alinhamento à direita e redução de espaço
     st.markdown(
         """
-        <div style='font-size: 10px; margin-top: -40px;'> 
+        <div style='font-size: 10px; margin-top: -120px; text-align: right;'>
         <b>Legenda dos Faróis de Atingimento de Meta:</b><br>
         - **🔵**: Atingimento superior a 110%<br>
         - **🟢**: Atingimento entre 100% e 110%<br>
