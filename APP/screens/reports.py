@@ -199,7 +199,7 @@ def display_farois_legend():
     # Código da legenda
     st.markdown(
         """
-        <div style='font-size: 10px; margin-top: -20px;'>
+        <div style='font-size: 10px; margin-top: -40px;'> 
         <b>Legenda dos Faróis de Atingimento de Meta:</b><br>
         - **🔵**: Atingimento superior a 110%<br>
         - **🟢**: Atingimento entre 100% e 110%<br>
