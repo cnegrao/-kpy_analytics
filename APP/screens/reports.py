@@ -188,23 +188,26 @@ def display_data_table(df):
         )
     )])
 
-    # Ajustes finais de layout
-    fig.update_layout(margin=dict(l=10, r=10, t=10, b=10))
+    # Definindo a altura máxima da tabela e habilitando rolagem
+    fig.update_layout(
+        autosize=False,
+        height=315,  # Definindo a altura máxima da tabela
+        margin=dict(l=10, r=10, t=10, b=10)
+    )
 
     # Exibição da tabela no Streamlit
     st.plotly_chart(fig, use_container_width=True)
 
 
 def display_farois_legend():
-    # Código da legenda com alinhamento à direita e ajuste de margem superior
+    # Código da legenda com estilo horizontal
     st.markdown(
         """
-        <div style='font-size: 10px; margin-top: -80px; text-align: right;'>
-        <b>Legenda dos Faróis de Atingimento de Meta:</b><br>
-        - **🔵**: Atingimento superior a 110%<br>
-        - **🟢**: Atingimento entre 100% e 110%<br>
-        - **🟡**: Atingimento entre 85% e 99%<br>
-        - **🔴**: Atingimento inferior a 85%
+        <div style='font-size: 12px; margin-top: -30px; text-align: right; display: flex; justify-content: flex-end;'>
+            <span style='margin-right: 15px;'><b>🔵</b>: &gt; 110%</span>
+            <span style='margin-right: 15px;'><b>🟢</b>: 100% - 110%</span>
+            <span style='margin-right: 15px;'><b>🟡</b>: 85% - 99%</span>
+            <span style='margin-right: 15px;'><b>🔴</b>: &lt; 85%</span>
         </div>
         """, unsafe_allow_html=True
     )
